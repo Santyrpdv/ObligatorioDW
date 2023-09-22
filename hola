@@ -1,0 +1,263 @@
+Create DATABASE Obligatorio2;
+USE Obligatorio2
+/*
+DELETE FROM Donacion;
+DELETE FROM Visualizacion;
+DELETE FROM Contenido;
+DELETE FROM Categoria;
+DELETE FROM Usuario;
+DROP Table Donacion;
+DROP Table Visualizacion;
+DROP Table Contenido;
+DROP Table Categoria;
+DROP Table Usuario;
+*/
+-----------------------------------------------------------
+-- 1. Script de creación de las tablas
+-----------------------------------------------------------
+CREATE TABLE Usuario(
+Email VARCHAR(30) NOT NULL,
+Nombre VARCHAR(30) NOT NULL,
+Usuario VARCHAR(10) NOT NULL,
+Contraseña VARCHAR(8) NOT NULL,
+Sexo VARCHAR(1) NOT NULL,
+FechaNac DATE NOT NULL,
+FechaAlta DATE NOT NULL
+);
+
+CREATE TABLE Categoria (
+CodCategoria INTEGER IDENTITY(1,1),
+NombreCategoria VARCHAR(8) NOT NULL,
+);
+
+CREATE TABLE Contenido(
+CodContenido INT NOT NULL,
+Titulo VARCHAR(40) NOT NULL,
+FechaEmision DATE NOT NULL,
+EmailUsuario VARCHAR(30) NOT NULL,
+CodCategoria INT NOT NULL,
+Estado VARCHAR(8) NOT NULL,
+);
+
+CREATE TABLE Visualizacion(
+CodContenido INT NOT NULL,
+EmailUsuario VARCHAR(30) NOT NULL,
+Fecha DATE NOT NULL,
+);
+
+CREATE TABLE Donacion(
+EmailOrigen VARCHAR(30) NOT NULL,
+EmailDestino VARCHAR(30) NOT NULL,
+FechaCreacion DATE NOT NULL,
+FechaAcreditacion DATE,
+Monto DECIMAL(9,2) NOT NULL,
+EstadoDonacion VARCHAR(9) NOT NULL
+);
+
+-----------------------------------------------------------
+-- 1. Script ADD CONSTRAINT de las tablas
+-----------------------------------------------------------
+
+ALTER TABLE Usuario
+	ADD CONSTRAINT Usuario_pk PRIMARY KEY(Email);
+ALTER TABLE Usuario
+	ADD CONSTRAINT uc_Usuario_Usuario UNIQUE (Usuario);
+ALTER TABLE Usuario
+	ADD CONSTRAINT ck_Usuario_Sexo CHECK ((UPPER(Sexo)) in ('F', 'M', 'O'));
+ALTER TABLE Usuario
+	ADD CONSTRAINT ck_Usuario_FechaNac CHECK (DATEDIFF(YEAR, FechaNac, GETDATE())>15);
+
+ALTER TABLE Categoria
+	ADD CONSTRAINT Categoria_pk PRIMARY KEY(CodCategoria);
+ALTER TABLE Categoria
+	ADD CONSTRAINT uc_Categoria_NombreCategoria UNIQUE (NombreCategoria);
+ALTER TABLE Categoria
+	ADD CONSTRAINT ck_Categoria_NombreCategoria CHECK ((UPPER(NombreCategoria)) in ('JUEGOS', 'IRL', 'MUSICA' , 'ESPORTS' , 'CREATIVE'));
+
+ALTER TABLE Contenido
+	ADD CONSTRAINT Contenido_pk PRIMARY KEY(CodContenido);
+ALTER TABLE Contenido
+        ADD CONSTRAINT fk_Contenido_Usuario_Email FOREIGN KEY (EmailUsuario) REFERENCES Usuario(Email);
+ALTER TABLE Contenido
+        ADD CONSTRAINT fk_Contenido_Categoria_CodCategoría FOREIGN KEY (CodCategoria) REFERENCES Categoria(CodCategoria);
+ALTER TABLE Contenido
+	ADD CONSTRAINT ck_Contenido_Estado CHECK ((UPPER(Estado)) in ('PUBLICO', 'PRIVADO'));
+ALTER TABLE Contenido
+	ADD CONSTRAINT ck_longitud_CodContenido  CHECK (CodContenido >= 1000 AND CodContenido <= 9999)
+
+ALTER TABLE Visualizacion
+	ADD CONSTRAINT Visualizacion_pk PRIMARY KEY(EmailUsuario,CodContenido,Fecha);
+ALTER TABLE Visualizacion
+        ADD CONSTRAINT fk_Visualizacion_Usuario_Email FOREIGN KEY (EmailUsuario) REFERENCES Usuario(Email);
+ALTER TABLE Visualizacion
+        ADD CONSTRAINT fk_Visualizacion_Categoria_CodContenido FOREIGN KEY (CodContenido) REFERENCES Contenido(CodContenido);
+
+ALTER TABLE Donacion
+	ADD CONSTRAINT Donacion_pk PRIMARY KEY(EmailOrigen, EmailDestino, FechaCreacion) ;
+ALTER TABLE Donacion
+        ADD CONSTRAINT fk_Usuario_EmailOrigen FOREIGN KEY (EmailOrigen) REFERENCES Usuario(Email);
+ALTER TABLE Donacion
+        ADD CONSTRAINT fk_Usuario_EmailDestino FOREIGN KEY (EmailDestino) REFERENCES Usuario(Email);
+ALTER TABLE Donacion
+	ADD CONSTRAINT ck_Contenido_EstadoDonacion CHECK ((UPPER(EstadoDonacion)) in ('PENDIENTE', 'APROBADA'));
+ALTER TABLE Donacion
+	ADD CONSTRAINT ck_FechaAcreditacion CHECK ((FechaAcreditacion IS NULL) OR ((UPPER(EstadoDonacion)) <> 'PENDIENTE'));
+ALTER TABLE Donacion
+	ADD CONSTRAINT ck_Contenido_EstadoDonacio_Diferente CHECK (EmailOrigen != EmailDestino);
+ALTER TABLE Donacion
+	ADD CONSTRAINT c_Donacion_Monto CHECK (Monto > 0);
+
+INSERT INTO Usuario VALUES ('ISABELMARTIN@example.com', 'ISABEL MARTIN', 'I.MARTIN', 'pass1', 'F', '2000-01-01', '2023-11-03');
+INSERT INTO Usuario VALUES ('SOFIATORRES@example.com', 'SOFIA TORRES', 'S.TORRES', 'pass2', 'F', '1995-02-10', '2023-11-03');
+INSERT INTO Usuario VALUES ('FERNANDOMARTINEZ@example.com', 'FERNANDO MARTINEZ', 'F.MARTINEZ', 'pass2', 'M', '1975-05-10', '2023-11-03');
+INSERT INTO Usuario VALUES ('CARLOSRODRIGUEZ@example.com', 'CARLOS RODRIGUEZ', 'C.RODRIGUE', 'pass2', 'M', '1965-09-10', '2023-11-03');
+INSERT INTO Usuario VALUES ('ANASANCHEZ@example.com', 'ANA SANCHEZ', 'A.SANCHEZ', 'pass2', 'F', '1995-02-10', '2020-10-03');
+INSERT INTO Usuario VALUES ('SEBASTIÁNMORALES@example.com', 'SEBASTIÁN MORALES', 'S.MORALES', 'pass2', 'M', '1995-12-13', '2023-11-03');
+INSERT INTO Usuario VALUES ('VALENTINAFERNÁNDEZ@example.com', 'VALENTINA FERNÁNDEZ', 'V.FERNÁNDE', 'pass2', 'F', '1990-08-10', '2023-11-03');
+INSERT INTO Usuario VALUES ('DIEGOGARCÍA@example.com', 'DIEGO GARCÍA', 'D.GARCÍA', 'pass2', 'O', '1978-09-10', '2023-11-03');
+INSERT INTO Usuario VALUES ('ANARODRÍGUEZ@example.com', 'ANA RODRÍGUEZ', 'A.RODRÍGUE', 'pass2', 'F', '1957-07-13', '2023-11-03');
+INSERT INTO Usuario VALUES ('LUCASPÉREZ@example.com', 'LUCAS PÉREZ', 'L.PÉREZ', 'pass2', 'M', '1995-02-10', '2021-10-15');
+INSERT INTO Usuario VALUES ('LAURAMARTÍNEZ@example.com', 'LAURA MARTÍNEZ', 'L.MARTÍNEZ', 'pass2', 'O', '1975-02-10', '2012-10-03');
+INSERT INTO Usuario VALUES ('ANDRÉSSILVA@example.com', 'ANDRÉS SILVA', 'A.SILVA', 'pass2', 'M', '1990-08-15', '2023-11-03');
+INSERT INTO Usuario VALUES ('CAROLINAFERNÁNDEZ@example.com', 'CAROLINA FERNÁNDEZ', 'C.FERNÁNDE', 'pass2', 'F', '1988-11-15', '2022-10-03');
+INSERT INTO Usuario VALUES ('JUANLÓPEZ@example.com', 'JUAN LÓPEZ', 'J.LÓPEZ', 'pass2', 'M', '1999-06-10', '2023-11-03');
+INSERT INTO Usuario VALUES ('MARÍAGÓMEZ@example.com', 'MARÍA GÓMEZ', 'M.GÓMEZ', 'pass2', 'O', '1998-08-15', '2020-04-08');
+
+INSERT INTO Categoria VALUES('JUEGOS');
+INSERT INTO Categoria VALUES('IRL');
+INSERT INTO Categoria VALUES('MUSICA');
+INSERT INTO Categoria VALUES('ESPORTS');
+INSERT INTO Categoria VALUES('CREATIVE');
+
+INSERT INTO Contenido VALUES (1001, 'Contenido 1', '2022-08-13', 'SOFIATORRES@example.com', 1, 'PUBLICO');
+INSERT INTO Contenido VALUES (1002, 'Contenido 2', '2022-03-24', 'JUANLÓPEZ@example.com', 2, 'PRIVADO');
+INSERT INTO Contenido VALUES (1003, 'Contenido 3', '2022-04-13', 'MARÍAGÓMEZ@example.com', 3, 'PUBLICO');
+INSERT INTO Contenido VALUES (1004, 'Contenido 4', '2022-05-30', 'FERNANDOMARTINEZ@example.com', 4, 'PRIVADO');
+INSERT INTO Contenido VALUES (1005, 'Contenido 5', '2022-02-25', 'SEBASTIÁNMORALES@example.com', 5, 'PUBLICO');
+INSERT INTO Contenido VALUES (1006, 'Contenido 6', '2022-05-28', 'LUCASPÉREZ@example.com', 1, 'PUBLICO');
+INSERT INTO Contenido VALUES (1007, 'Contenido 7', '2022-07-06', 'FERNANDOMARTINEZ@example.com', 2, 'PUBLICO');
+INSERT INTO Contenido VALUES (1008, 'Contenido 8', '2022-05-23', 'ANARODRÍGUEZ@example.com', 3, 'PRIVADO');
+INSERT INTO Contenido VALUES (1009, 'Contenido 9', '2023-01-14', 'DIEGOGARCÍA@example.com', 4, 'PUBLICO');
+INSERT INTO Contenido VALUES (1010, 'Contenido 10', '2022-10-05', 'SEBASTIÁNMORALES@example.com', 5, 'PUBLICO');
+INSERT INTO Contenido VALUES (1011, 'Contenido 11', '2023-01-21', 'LUCASPÉREZ@example.com', 1, 'PUBLICO');
+INSERT INTO Contenido VALUES (1012, 'Contenido 12', '2022-09-02', 'ANARODRÍGUEZ@example.com', 2, 'PRIVADO');
+INSERT INTO Contenido VALUES (1013, 'Contenido 13', '2022-11-27', 'DIEGOGARCÍA@example.com', 3, 'PUBLICO');
+INSERT INTO Contenido VALUES (1014, 'Contenido 14', '2023-02-04', 'DIEGOGARCÍA@example.com', 4, 'PRIVADO');
+INSERT INTO Contenido VALUES (1015, 'Contenido 15', '2022-06-25', 'LUCASPÉREZ@example.com', 5, 'PUBLICO');
+INSERT INTO Contenido VALUES (1016, 'Contenido 16', '2023-01-01', 'VALENTINAFERNÁNDEZ@example.com', 1, 'PUBLICO');
+INSERT INTO Contenido VALUES (1017, 'Contenido 17', '2023-04-22', 'MARÍAGÓMEZ@example.com', 2, 'PRIVADO');
+INSERT INTO Contenido VALUES (1018, 'Contenido 18', '2023-03-13', 'ANARODRÍGUEZ@example.com', 3, 'PUBLICO');
+INSERT INTO Contenido VALUES (1019, 'Contenido 19', '2022-07-04', 'MARÍAGÓMEZ@example.com', 4, 'PUBLICO');
+INSERT INTO Contenido VALUES (1020, 'Contenido 20', '2022-12-30', 'LUCASPÉREZ@example.com', 5, 'PUBLICO');
+INSERT INTO Contenido VALUES (1021, 'Contenido 21', '2023-01-21', 'LUCASPÉREZ@example.com', 1, 'PUBLICO');
+INSERT INTO Contenido VALUES (1022, 'Contenido 22', '2023-01-02', 'ANARODRÍGUEZ@example.com', 2, 'PRIVADO');
+INSERT INTO Contenido VALUES (1023, 'Contenido 23', '2023-01-27', 'SOFIATORRES@example.com', 3, 'PUBLICO');
+INSERT INTO Contenido VALUES (1024, 'Contenido 24', '2023-01-04', 'DIEGOGARCÍA@example.com', 4, 'PRIVADO');
+INSERT INTO Contenido VALUES (1025, 'Contenido 25', '2023-01-25', 'LAURAMARTÍNEZ@example.com', 5, 'PUBLICO');
+INSERT INTO Contenido VALUES (1026, 'Contenido 26', '2023-01-01', 'VALENTINAFERNÁNDEZ@example.com', 1, 'PUBLICO');
+INSERT INTO Contenido VALUES (1027, 'Contenido 27', '2023-01-22', 'MARÍAGÓMEZ@example.com', 2, 'PRIVADO');
+INSERT INTO Contenido VALUES (1028, 'Contenido 28', '2023-01-13', 'ANARODRÍGUEZ@example.com', 3, 'PUBLICO');
+INSERT INTO Contenido VALUES (1029, 'Contenido 29', '2023-01-04', 'MARÍAGÓMEZ@example.com', 4, 'PUBLICO');
+INSERT INTO Contenido VALUES (1030, 'Contenido 30', '2023-01-30', 'CAROLINAFERNÁNDEZ@example.com', 3, 'PUBLICO');
+
+INSERT INTO Visualizacion VALUES (1001, 'FERNANDOMARTINEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1001, 'ANASANCHEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1001, 'ANARODRÍGUEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1001, 'CAROLINAFERNÁNDEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1003, 'LAURAMARTÍNEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1005, 'VALENTINAFERNÁNDEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1005, 'CARLOSRODRIGUEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1005, 'ISABELMARTIN@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1006, 'LAURAMARTÍNEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1007, 'DIEGOGARCÍA@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1009, 'ANARODRÍGUEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1009, 'VALENTINAFERNÁNDEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1009, 'CARLOSRODRIGUEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1009, 'ANDRÉSSILVA@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1009, 'MARÍAGÓMEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1009, 'JUANLÓPEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1009, 'FERNANDOMARTINEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1009, 'ISABELMARTIN@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1010, 'ISABELMARTIN@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1010, 'FERNANDOMARTINEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1010, 'CARLOSRODRIGUEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1010, 'VALENTINAFERNÁNDEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1010, 'ANARODRÍGUEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1010, 'ANDRÉSSILVA@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1011, 'JUANLÓPEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1011, 'ANASANCHEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1013, 'ANASANCHEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1013, 'LUCASPÉREZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1013, 'CAROLINAFERNÁNDEZ@example.com', '2020-06-04');
+INSERT INTO Visualizacion VALUES (1015, 'ISABELMARTIN@example.com', '2021-06-04');
+INSERT INTO Visualizacion VALUES (1015, 'SEBASTIÁNMORALES@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1015, 'ANARODRÍGUEZ@example.com', '2020-06-04');
+INSERT INTO Visualizacion VALUES (1015, 'JUANLÓPEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1016, 'SOFIATORRES@example.com', '2021-06-04');
+INSERT INTO Visualizacion VALUES (1016, 'FERNANDOMARTINEZ@example.com', '2020-06-04');
+INSERT INTO Visualizacion VALUES (1016, 'CARLOSRODRIGUEZ@example.com', '2022-06-04');
+INSERT INTO Visualizacion VALUES (1016, 'ANASANCHEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1016, 'SEBASTIÁNMORALES@example.com', '2020-06-04');
+INSERT INTO Visualizacion VALUES (1016, 'DIEGOGARCÍA@example.com', '2022-06-04');
+INSERT INTO Visualizacion VALUES (1016, 'ANARODRÍGUEZ@example.com', '2023-05-04');
+INSERT INTO Visualizacion VALUES (1016, 'LUCASPÉREZ@example.com', '2021-06-04');
+INSERT INTO Visualizacion VALUES (1016, 'ANDRÉSSILVA@example.com', '2022-06-04');
+INSERT INTO Visualizacion VALUES (1016, 'CAROLINAFERNÁNDEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1018, 'FERNANDOMARTINEZ@example.com', '2023-05-04');
+INSERT INTO Visualizacion VALUES (1018, 'SEBASTIÁNMORALES@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1018, 'LAURAMARTÍNEZ@example.com', '2023-04-04');
+INSERT INTO Visualizacion VALUES (1018, 'ANDRÉSSILVA@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1018, 'CAROLINAFERNÁNDEZ@example.com', '2023-03-04');
+INSERT INTO Visualizacion VALUES (1018, 'JUANLÓPEZ@example.com', '2022-06-04');
+INSERT INTO Visualizacion VALUES (1018, 'MARÍAGÓMEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1018, 'ISABELMARTIN@example.com', '2023-02-04');
+INSERT INTO Visualizacion VALUES (1020, 'FERNANDOMARTINEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1020, 'ANASANCHEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1020, 'VALENTINAFERNÁNDEZ@example.com', '2023-01-04');
+INSERT INTO Visualizacion VALUES (1020, 'ANDRÉSSILVA@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1023, 'VALENTINAFERNÁNDEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1023, 'CARLOSRODRIGUEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1023, 'ANDRÉSSILVA@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1023, 'MARÍAGÓMEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1025, 'JUANLÓPEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1025, 'FERNANDOMARTINEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1025, 'ISABELMARTIN@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1026, 'ISABELMARTIN@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1026, 'FERNANDOMARTINEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1028, 'CARLOSRODRIGUEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1028, 'VALENTINAFERNÁNDEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1029, 'ANARODRÍGUEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1029, 'ANDRÉSSILVA@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1029, 'JUANLÓPEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1030, 'ANASANCHEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1030, 'ANASANCHEZ@example.com', '2023-06-04');
+INSERT INTO Visualizacion VALUES (1030, 'LUCASPÉREZ@example.com', '2023-06-04');
+
+INSERT INTO Donacion VALUES ('FERNANDOMARTINEZ@example.com', 'SOFIATORRES@example.com', '2023-06-04', '2023-06-04', 15000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('ANASANCHEZ@example.com', 'SOFIATORRES@example.com', '2023-02-04', '2023-03-04', 18500.70, 'APROBADA');
+INSERT INTO Donacion VALUES ('ANARODRÍGUEZ@example.com', 'SOFIATORRES@example.com', '2023-06-04', null, 165000.50, 'PENDIENTE');
+INSERT INTO Donacion VALUES ('CARLOSRODRIGUEZ@example.com', 'SEBASTIÁNMORALES@example.com', '2023-04-04', '2023-04-04', 257000.60, 'APROBADA');
+INSERT INTO Donacion VALUES ('ISABELMARTIN@example.com', 'SEBASTIÁNMORALES@example.com', '2023-06-04', '2023-06-04', 715000.40, 'APROBADA');
+INSERT INTO Donacion VALUES ('LAURAMARTÍNEZ@example.com', 'LUCASPÉREZ@example.com', '2023-06-04', null, 155000.40, 'PENDIENTE');
+INSERT INTO Donacion VALUES ('DIEGOGARCÍA@example.com', 'FERNANDOMARTINEZ@example.com', '2023-05-04', '2023-05-04', 615000.90, 'APROBADA');
+INSERT INTO Donacion VALUES ('ANARODRÍGUEZ@example.com','DIEGOGARCÍA@example.com', '2023-06-04', '2023-06-04', 418000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('VALENTINAFERNÁNDEZ@example.com', 'DIEGOGARCÍA@example.com', '2023-06-04', '2023-06-04', 675000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('CARLOSRODRIGUEZ@example.com', 'DIEGOGARCÍA@example.com', '2023-06-04', null, 15000.00, 'PENDIENTE');
+INSERT INTO Donacion VALUES ('ANDRÉSSILVA@example.com', 'DIEGOGARCÍA@example.com', '2023-02-04', '2023-02-04', 157000.40, 'APROBADA');
+INSERT INTO Donacion VALUES ('JUANLÓPEZ@example.com', 'DIEGOGARCÍA@example.com', '2023-06-04', null, 185000.00, 'PENDIENTE');
+INSERT INTO Donacion VALUES ('FERNANDOMARTINEZ@example.com', 'DIEGOGARCÍA@example.com', '2023-06-04', '2023-06-04', 257000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('ISABELMARTIN@example.com', 'SEBASTIÁNMORALES@example.com', '2023-04-05', '2023-03-07', 150500.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('FERNANDOMARTINEZ@example.com', 'SEBASTIÁNMORALES@example.com', '2023-06-05', null, 215000.00, 'PENDIENTE');
+INSERT INTO Donacion VALUES ('CARLOSRODRIGUEZ@example.com', 'SEBASTIÁNMORALES@example.com', '2022-06-06', '2022-06-08', 156000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('VALENTINAFERNÁNDEZ@example.com', 'SEBASTIÁNMORALES@example.com', '2021-06-06', '2021-06-08', 615000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('JUANLÓPEZ@example.com', 'LUCASPÉREZ@example.com', '2022-06-06', '2022-06-07', 415000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('ANASANCHEZ@example.com', 'LUCASPÉREZ@example.com', '2023-04-06', null, 150000.00, 'PENDIENTE');
+INSERT INTO Donacion VALUES ('JUANLÓPEZ@example.com', 'LUCASPÉREZ@example.com', '2023-06-07', null, 150000.00, 'PENDIENTE');
+INSERT INTO Donacion VALUES ('FERNANDOMARTINEZ@example.com', 'VALENTINAFERNÁNDEZ@example.com', '2023-02-07', '2023-02-08', 153000.10, 'APROBADA');
+INSERT INTO Donacion VALUES ('SEBASTIÁNMORALES@example.com', 'VALENTINAFERNÁNDEZ@example.com', '2023-06-08', '2023-06-09', 175000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('ANDRÉSSILVA@example.com', 'VALENTINAFERNÁNDEZ@example.com', '2023-06-08', null, 156000.00, 'PENDIENTE');
+INSERT INTO Donacion VALUES ('CAROLINAFERNÁNDEZ@example.com', 'VALENTINAFERNÁNDEZ@example.com', '2023-06-08', '2023-06-08', 15000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('MARÍAGÓMEZ@example.com', 'ANARODRÍGUEZ@example.com', '2023-06-08', '2023-06-09', 215000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('ISABELMARTIN@example.com', 'ANARODRÍGUEZ@example.com', '2023-02-08', '2023-02-09', 715000.00, 'APROBADA');
+INSERT INTO Donacion VALUES ('ANASANCHEZ@example.com', 'LUCASPÉREZ@example.com', '2023-06-09', null, 155000.00, 'PENDIENTE');
+
